@@ -35,6 +35,13 @@ func CreateUser(db *gorm.DB, user *User) (err error) {
 	return tx.Commit().Error
 }
 
+func GetAllUser(db *gorm.DB, user *[]User) (err error) {
+	if err = db.Find(&user).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func main()  {
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
@@ -49,7 +56,6 @@ func main()  {
 	CreateUser(db, &User{Name: "Suzuki"})
 
 	var users []User
-	db.Find(&users).Scan(&users)
+	GetAllUser(db, &users)
 	fmt.Println(users)
-
 }
