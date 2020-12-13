@@ -48,8 +48,7 @@ func TestCreateUser(t *testing.T) {
 	}
 
 	s.user = User{
-		ID: "2",
-		Name: "Taro",
+		Name: "yuki",
 	}
 
 	defer db.Close()
@@ -57,11 +56,11 @@ func TestCreateUser(t *testing.T) {
 	s.mock.MatchExpectationsInOrder(false)
 	s.mock.ExpectBegin()
 	s.mock.ExpectQuery(regexp.QuoteMeta(
-		`INSERT INTO "users" ("id","name") VALUES ($1,$2)`)).
-		WithArgs(s.user.ID ,s.user.Name).WillReturnRows(sqlmock.NewRows([]string{"id","name"}).AddRow(s.user.ID, s.user.Name))
+		`INSERT INTO "users" ("name") VALUES ($1)`)).
+		WithArgs(s.user.Name).WillReturnRows(sqlmock.NewRows([]string{"name"}).AddRow(s.user.Name))
 	s.mock.ExpectCommit()
 
-	if err = CreateUser(s.db, &User{ID: "2", Name: "Taro"}); err != nil {
+	if err = CreateUser(s.db, &User{Name: "yuki"}); err != nil {
 		t.Errorf("Failed to insert to gorm db, got error: %v", err)
 	}
 }

@@ -7,8 +7,12 @@ import (
 )
 
 type User struct {
-	ID string
-	Name string
+	ID           uint `gorm:"primaryKey; AUTO_INCREMENT;not null;"`
+	Name 		 string `gorm:"unique;not null"`
+}
+
+func (b *User) TableName() string {
+	return "users"
 }
 
 func CreateUser(db *gorm.DB, user *User) (err error) {
@@ -41,9 +45,11 @@ func main()  {
 
 	db.AutoMigrate(&User{})
 
-	CreateUser(db, &User{ID: "1", Name: "Taro"})
+	CreateUser(db, &User{Name: "Yamada"})
+	CreateUser(db, &User{Name: "Suzuki"})
 
-	var user User
-	db.First(&user, 1).Scan(&user)
-	fmt.Println(user.ID, user.Name)
+	var users []User
+	db.Find(&users).Scan(&users)
+	fmt.Println(users)
+
 }
