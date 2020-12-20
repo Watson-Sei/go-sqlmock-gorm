@@ -37,7 +37,7 @@ func GetNewDbMock() (*gorm.DB, sqlmock.Sqlmock, error) {
 
 [gorm Transactions official guide](https://gorm.io/ja_JP/docs/transactions.html)
 
-[https://tech.fusic.co.jp/posts/2020-12-02-mock-gormdb-using-go-sqlmock/](https://tech.fusic.co.jp/posts/2020-12-02-mock-gormdb-using-go-sqlmock/)
+[DATA-DOG/go-sqlmockを使ってGormDBをmockする](https://tech.fusic.co.jp/posts/2020-12-02-mock-gormdb-using-go-sqlmock/)
 
 [go-sqlmockを使ってGORMで書いたコードをテストする](https://qiita.com/otanu/items/761de2bfc38468e9d353)
 
