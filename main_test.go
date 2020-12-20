@@ -1,111 +1,79 @@
 package main
 
 import (
-	"database/sql"
 	"github.com/DATA-DOG/go-sqlmock"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"regexp"
 	"testing"
 )
 
-type v2Suite struct {
-	db *gorm.DB
-	mock sqlmock.Sqlmock
-	user User
+
+// モックを作成
+func GetNewDbMock() (*gorm.DB, sqlmock.Sqlmock, error) {
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		return nil, mock, err
+	}
+
+	gormDB, err := gorm.Open(mysql.Dialector{Config: &mysql.Config{DriverName: "mysql", Conn: db, SkipInitializeWithVersion: true}}, &gorm.Config{})
+
+	if err != nil {
+		return gormDB, mock, err
+	}
+
+	return gormDB, mock, err
 }
 
-func TestCreateUser(t *testing.T) {
-	s := &v2Suite{}
-	var (
-		db *sql.DB
-		err error
-	)
-
-	db, s.mock, err = sqlmock.New()
+func TestGetTag(t *testing.T) {
+	db, mock, err := GetNewDbMock()
 	if err != nil {
-		t.Errorf("Failed to open mock sql db, got error: %v", err)
+		t.Errorf("Failed to initialize mock DB: %v", err)
 	}
 
-	if db == nil {
-		t.Error("mock db is null")
-	}
+	id := "1"
+	name := "Google"
+	mock.ExpectQuery(regexp.QuoteMeta(
+		"SELECT * FROM `tags` WHERE id = ?")).
+		WithArgs(id).
+		WillReturnRows(sqlmock.NewRows([]string{"id","name"}).
+			AddRow(id, name))
 
-	if s.mock == nil {
-		t.Error("sqlmock is null")
-	}
-
-
-	s.db, err = gorm.Open(sqlite.Open("test.db"), &gorm.Config{
-		DisableForeignKeyConstraintWhenMigrating: true,
-	})
+	//
+	res, err := GetTag(db, id)
 	if err != nil {
-		t.Errorf("Failed to open gorm v2 db, got error: %v", err)
+		t.Fatal(err)
 	}
 
-	if s.db == nil {
-		t.Error("gorm db is null")
-	}
-
-	s.user = User{
-		Name: "yuki",
-	}
-
-	defer db.Close()
-
-	s.mock.MatchExpectationsInOrder(false)
-	s.mock.ExpectBegin()
-	s.mock.ExpectQuery(regexp.QuoteMeta(
-		`INSERT INTO "users" ("name") VALUES ($1)`)).
-		WithArgs(s.user.Name).WillReturnRows(sqlmock.NewRows([]string{"name"}).AddRow(s.user.Name))
-	s.mock.ExpectCommit()
-
-	if err = CreateUser(s.db, &User{Name: "yuki"}); err != nil {
-		t.Errorf("Failed to insert to gorm db, got error: %v", err)
+	if res.ID != id || res.Name != name {
+		t.Errorf("取得結果不一致 %+v", res)
 	}
 }
 
-func TestGetAllUser(t *testing.T) {
-	s := &v2Suite{}
-	var (
-		db *sql.DB
-		err error
-	)
-
-	db, s.mock, err = sqlmock.New()
+func TestCreateTag(t *testing.T) {
+	db, mock, err := GetNewDbMock()
 	if err != nil {
-		t.Errorf("Failed to open mock sql db, got error: %v", err)
+		t.Fatal(err)
 	}
 
-	if db == nil {
-		t.Error("mock db is null")
-	}
+	id := "1"
+	name := "Google"
 
-	if s.mock == nil {
-		t.Error("sqlmock is null")
-	}
+	mock.MatchExpectationsInOrder(false)
+	mock.ExpectBegin()
 
+	mock.ExpectExec(regexp.QuoteMeta(
+		"INSERT INTO `tags` (`id`,`name`) VALUES (?,?)")).
+		WithArgs(id, name).
+		WillReturnResult(sqlmock.NewResult(1,1))
+	mock.ExpectCommit()
 
-	s.db, err = gorm.Open(sqlite.Open("test.db"), &gorm.Config{
-		DisableForeignKeyConstraintWhenMigrating: true,
-	})
+	_, err = CreateTag(db, id, name)
 	if err != nil {
-		t.Errorf("Failed to open gorm v2 db, got error: %v", err)
+		t.Fatal(err)
 	}
 
-	if s.db == nil {
-		t.Error("gorm db is null")
-	}
-
-	defer db.Close()
-
-	s.mock.MatchExpectationsInOrder(false)
-	s.mock.ExpectQuery(regexp.QuoteMeta(
-		`SELECT * FROM "users"`)).
-		WillReturnRows(sqlmock.NewRows([]string{"id","name"}).AddRow(1,"Yamada").AddRow(2,"Ken"))
-
-	var users []User
-	if err := GetAllUser(s.db, &users); err  != nil {
-		t.Error(err)
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }

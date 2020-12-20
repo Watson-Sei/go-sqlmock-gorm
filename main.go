@@ -6,56 +6,48 @@ import (
 	"gorm.io/gorm"
 )
 
-type User struct {
-	ID           uint `gorm:"primaryKey; AUTO_INCREMENT;not null;"`
-	Name 		 string `gorm:"unique;not null"`
+type Tag struct {
+	ID 		string	`gorm:"primary_key"`
+	Name 	string
 }
 
-func (b *User) TableName() string {
-	return "users"
+func GetTag(db *gorm.DB, id string) (*Tag, error) {
+	var tag Tag
+	err := db.Where("id = ?", id).Find(&tag).Error
+	return &tag, err
 }
 
-func CreateUser(db *gorm.DB, user *User) (err error) {
+func CreateTag(db *gorm.DB, id string, name string) (*Tag, error) {
 	tx := db.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
-	if err := tx.Error; err != nil {
-		return err
+	tag := &Tag{
+		ID: id,
+		Name: name,
 	}
-
-	if err := tx.Create(user).Error; err != nil {
+	err := tx.Create(tag).Error
+	if err != nil {
 		tx.Rollback()
-		return err
+		return tag, err
 	}
-
-	return tx.Commit().Error
-}
-
-func GetAllUser(db *gorm.DB, user *[]User) (err error) {
-	if err = db.Find(&user).Error; err != nil {
-		return err
-	}
-	return nil
+	tx.Commit()
+	return tag, err
 }
 
 func main()  {
-	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{
-		DisableForeignKeyConstraintWhenMigrating: true,
-	})
+	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}
+	
+	db.AutoMigrate(&Tag{})
+	
+	//db.Create(&Tag{ID: "1", Name: "Google"})
+	//db.Create(&Tag{ID: "2", Name: "FaceBook"})
 
-	db.AutoMigrate(&User{})
+	res, err := CreateTag(db, "1","Google")
+	fmt.Println(res)
+	res, err = CreateTag(db, "2", "FaceBook")
+	fmt.Println(res)
 
-	CreateUser(db, &User{Name: "Yamada"})
-	CreateUser(db, &User{Name: "Suzuki"})
-
-	var users []User
-	GetAllUser(db, &users)
-	fmt.Println(users)
+	res, err = GetTag(db, "1")
+	fmt.Println(res.ID, res.Name)
 }
