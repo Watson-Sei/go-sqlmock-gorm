@@ -11,12 +11,20 @@ type Tag struct {
 	Name 	string
 }
 
+// 全データ取得
+func GetAllTag(db *gorm.DB) (*[]Tag, error) {
+	var tags []Tag
+	err := db.Find(&tags).Error
+	return &tags, err
+}
+
+// 特定idのデータ取得
 func GetTag(db *gorm.DB, id string) (*Tag, error) {
 	var tag Tag
 	err := db.Where("id = ?", id).Find(&tag).Error
 	return &tag, err
 }
-
+// データ作成
 func CreateTag(db *gorm.DB, id string, name string) (*Tag, error) {
 	tx := db.Begin()
 	tag := &Tag{
@@ -50,4 +58,7 @@ func main()  {
 
 	res, err = GetTag(db, "1")
 	fmt.Println(res.ID, res.Name)
+
+	allResult, err := GetAllTag(db)
+	fmt.Println(allResult)
 }

@@ -25,6 +25,30 @@ func GetNewDbMock() (*gorm.DB, sqlmock.Sqlmock, error) {
 	return gormDB, mock, err
 }
 
+func TestGetAllTag(t *testing.T) {
+	db, mock, err := GetNewDbMock()
+	if err != nil {
+		t.Errorf("Failed to initialize mock DB: %v", err)
+	}
+
+	mock.ExpectQuery(regexp.QuoteMeta(
+		"SELECT * FROM `tags`")).
+		WillReturnRows(sqlmock.NewRows([]string{"id","name"}).
+			AddRow("1","Google").
+			AddRow("2","FaceBook"))
+
+	res, err := GetAllTag(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res == nil {
+		t.Errorf("値が取得できていません %v", res)
+	}
+
+
+}
+
 func TestGetTag(t *testing.T) {
 	db, mock, err := GetNewDbMock()
 	if err != nil {
