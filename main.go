@@ -53,6 +53,18 @@ func DeleteTag(db *gorm.DB, id string) error {
 	return err
 }
 
+// データ更新
+func UpdateTag(db *gorm.DB, id, name string, tag *Tag) (*Tag, error)  {
+	tx := db.Begin()
+	err := tx.Model(&tag).Where("id = ?").Update("name", name).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	tx.Commit()
+	return tag, err
+}
+
 func main()  {
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
@@ -71,6 +83,9 @@ func main()  {
 
 	res, err = GetTag(db, "1")
 	fmt.Println(res.ID, res.Name)
+
+	updateResult, err := UpdateTag(db, "1", "Google21", res)
+	fmt.Println(updateResult)
 
 	allResult, err := GetAllTag(db)
 	fmt.Println(allResult)

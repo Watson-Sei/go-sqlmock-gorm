@@ -127,3 +127,24 @@ func TestDeleteTag(t *testing.T)  {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
+
+func TestUpdateTag(t *testing.T) {
+	db, mock, err := GetNewDbMock()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	id := "1"
+	name := "Google21"
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta(
+		"UPDATE `tags`")).
+		WillReturnResult(sqlmock.NewResult(1,1))
+	mock.ExpectCommit()
+
+	_, err = UpdateTag(db, id, name, &Tag{})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
