@@ -101,3 +101,29 @@ func TestCreateTag(t *testing.T) {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
+
+func TestDeleteTag(t *testing.T)  {
+	db, mock, err := GetNewDbMock()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	id := "1"
+
+	mock.MatchExpectationsInOrder(false)
+	mock.ExpectBegin()
+
+	mock.ExpectExec(regexp.QuoteMeta(
+		"DELETE FROM `tags` WHERE `tags`.`id` = ?")).
+		WithArgs(id).
+		WillReturnResult(sqlmock.NewResult(1,1))
+	mock.ExpectCommit()
+
+	if err = DeleteTag(db, id); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}

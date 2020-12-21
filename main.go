@@ -40,6 +40,19 @@ func CreateTag(db *gorm.DB, id string, name string) (*Tag, error) {
 	return tag, err
 }
 
+// データ削除
+func DeleteTag(db *gorm.DB, id string) error {
+	var tag Tag
+	tx := db.Begin()
+	err := tx.Delete(&tag, id).Error
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	tx.Commit()
+	return err
+}
+
 func main()  {
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
@@ -60,5 +73,10 @@ func main()  {
 	fmt.Println(res.ID, res.Name)
 
 	allResult, err := GetAllTag(db)
+	fmt.Println(allResult)
+
+	err = DeleteTag(db, "1")
+
+	allResult, err = GetAllTag(db)
 	fmt.Println(allResult)
 }
