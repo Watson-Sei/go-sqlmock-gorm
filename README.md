@@ -13,6 +13,8 @@
 ```
 
 ## mysql mock
+> mysqlの場合は `SkipInitializeWithVersion: true`が必須です。
+
 ```go
 func GetNewDbMock() (*gorm.DB, sqlmock.Sqlmock, error) {
 	db, mock, err := sqlmock.New()
