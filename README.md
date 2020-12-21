@@ -1,5 +1,12 @@
 # GORM & go-sqlmock Example
 
+## 書いてある処理
+- 全取得
+- 一部取得
+- 作成
+- 削除
+- 更新
+
 ## sqlite3 mock
 ```
 記述なし
