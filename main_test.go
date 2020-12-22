@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"regexp"
@@ -25,6 +27,29 @@ func GetNewDbMock() (*gorm.DB, sqlmock.Sqlmock, error) {
 	return gormDB, mock, err
 }
 
+// tesitfy mock を使った Model の Mock
+type ModelMock struct {
+	mock.Mock
+}
+
+// 難しいが、メソッドをモックするときの書き方
+func (m *ModelMock) GetAllTag() (*[]Tag, error) {
+	args := m.Called()
+	return args.Get(0).(*[]Tag), args.Error(1)
+}
+
+func TestControllerGetAllTagt (t *testing.T) {
+	// Model のモックを作成
+	modelMock := new(ModelMock)
+	modelMock.On("GetAllTag").Return(&[]Tag{}, nil)
+
+	// モックを入れてテスト
+	controller := Controller{model: modelMock}
+	tags, err := controller.GetAllTag()
+	assert.Nil(t, err)
+	assert.Equal(t, tags, &[]Tag{})
+}
+
 func TestGetAllTag(t *testing.T) {
 	db, mock, err := GetNewDbMock()
 	if err != nil {
@@ -37,16 +62,17 @@ func TestGetAllTag(t *testing.T) {
 			AddRow("1","Google").
 			AddRow("2","FaceBook"))
 
-	res, err := GetAllTag(db)
-	if err != nil {
-		t.Fatal(err)
+	m := Model{db: db}
+	res, err := m.GetAllTag()
+
+	assert.Nil(t, err)
+
+	// want は期待する結果
+	want := &[]Tag {
+		{"1", "Google"},
+		{"2", "FaceBook"},
 	}
-
-	if res == nil {
-		t.Errorf("値が取得できていません %v", res)
-	}
-
-
+	assert.Equal(t, want, res)
 }
 
 func TestGetTag(t *testing.T) {
@@ -139,7 +165,7 @@ func TestUpdateTag(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta(
-		"UPDATE `tags`")).
+		"UPDATE `tags` SET name=?")).
 		WillReturnResult(sqlmock.NewResult(1,1))
 	mock.ExpectCommit()
 

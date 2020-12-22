@@ -11,10 +11,27 @@ type Tag struct {
 	Name 	string
 }
 
+type ModelInterface interface {
+	GetAllTag() (*[]Tag, error)
+}
+
+type Controller struct{
+	model ModelInterface
+}
+
+func (c *Controller) GetAllTag() (*[]Tag, error){
+	tags, err := c.model.GetAllTag()
+	return tags, err
+}
+
+type Model struct{
+	db *gorm.DB
+}
+
 // 全データ取得
-func GetAllTag(db *gorm.DB) (*[]Tag, error) {
+func (m *Model) GetAllTag() (*[]Tag, error) {
 	var tags []Tag
-	err := db.Find(&tags).Error
+	err := m.db.Find(&tags).Error
 	return &tags, err
 }
 
@@ -70,9 +87,9 @@ func main()  {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	
+
 	db.AutoMigrate(&Tag{})
-	
+
 	//db.Create(&Tag{ID: "1", Name: "Google"})
 	//db.Create(&Tag{ID: "2", Name: "FaceBook"})
 
@@ -87,11 +104,12 @@ func main()  {
 	updateResult, err := UpdateTag(db, "1", "Google21", res)
 	fmt.Println(updateResult)
 
-	allResult, err := GetAllTag(db)
+	m := Model{db}
+	allResult, err := m.GetAllTag()
 	fmt.Println(allResult)
 
 	err = DeleteTag(db, "1")
 
-	allResult, err = GetAllTag(db)
+	allResult, err = m.GetAllTag()
 	fmt.Println(allResult)
 }
