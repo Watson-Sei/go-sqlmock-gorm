@@ -53,3 +53,9 @@ func GetNewDbMock() (*gorm.DB, sqlmock.Sqlmock, error) {
 [Gorm2.0でsqlMockに対応する](https://qiita.com/hosakak/items/a20af188846ef48f2e03)
 
 [gorm v2.0 unit testing with sqlmock #3565](https://github.com/go-gorm/gorm/issues/3565)
+
+[testifyによるMockテストの参考例](https://tutorialedge.net/golang/improving-your-tests-with-testify-go/)
+
+[testifyのMockメソッドに関する詳細説明](https://qiita.com/muroon/items/f8beec802c29e66d1918#mockon-%E3%83%A1%E3%82%BD%E3%83%83%E3%83%89)
+
+[testifyによるMockテストのControllerとModelの例に役立った](https://qiita.com/takeshi_miyajim/items/d2fe1ed3c2e85b014b02)
